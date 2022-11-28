@@ -1,9 +1,39 @@
+"""
+@file   stl.py
+@brief  STL objects (primitives & formulas)
+
+@author Tzu-Yi Chiu <tzuyi.chiu@gmail.com>
+"""
+
 from __future__ import annotations
 
 import numpy as np
 import itertools
 
 from dataclasses import dataclass
+from typing import List, FrozenSet, Set, Tuple
+
+class Primitive:
+    def robust(self, s: np.ndarray) -> float:
+        "Compute the robustness degree relative to signal `s`"
+        raise NotImplementedError("`robust` not implemented")
+
+    def satisfied(self, s: np.ndarray) -> bool:
+        "Verify if satisfied by signal `s`"
+        return self.robust(s) > 0
+
+    def is_child_of(self, parent: Primitive) -> bool:
+        raise NotImplementedError("`is_child_of` not implemented")
+
+    def __hash__(self):
+        raise NotImplementedError("`__hash__` not implemented")
+
+    def __eq__(self, other):
+        return isinstance(other, Primitive) and hash(self) == hash(other)
+    
+    def __repr__(self):
+        raise NotImplementedError("`__repr__` not implemented")
+
 from typing import List, FrozenSet, Set, Tuple
 
 class Primitive:
@@ -140,7 +170,7 @@ class Globally(Primitive):
     def is_child_of(self, parent: Primitive) -> bool:
         if parent == self:
             return False
-        
+                
         a, b = self._interval
         d, comp, mu = self._phi
         
@@ -458,9 +488,6 @@ class STL(object):
             parents.update(STL.__parents[i])
         return {STL(self._indices.union([i])) 
             for i in set(range(length)) - parents} - {self}
-
-    def get_params(self) -> List:
-        return [STL.__primitives[i].get_params() for i in self._indices]
 
     def __len__(self):
         return len(self._indices)
